@@ -1,0 +1,43 @@
+1: program -> declaration-list _EOF_
+2: declaration-list -> declaration declaration-list-rest
+3: declaration-list-rest -> declaration declaration-list-rest | _e_
+4: declaration -> var-declaration | fun-declaration
+5: var-declaration -> type-specifier _ID_ var-declaration-rest 
+5.1: var-declaration-rest -> ; | [ _NUM_ ] ;
+5: type-specifier -> _int_ | _void_
+6: fun-declaration -> type-specifier _ID_ ( params ) compound-stmt
+7: params -> param-list | _void_
+8: param-list -> param param-list-rest
+8.1: param-list-rest -> , param param-list-rest | _e_
+9: param -> type-specifier _ID_ param-rest
+9.1: param-rest -> _e_ | []
+10: compound-stmt -> { declaration-list statement-list }
+11: statement-list -> statement statement-list | _e_
+12: statement -> expression-stmt | compound-stmt | selection-stmt | iteration-stmt | return-stmt | switch-stmt
+13: expression-stmt -> expression ; | continue ; | break ; | ;
+14: selection-stmt -> _if_ ( expression ) statement _else_ statement
+15: iteration-stmt -> _while_ ( expression ) statement
+16: return-stmt -> _return_ return-stmt-rest
+16.1: return-stmt-rest -> ; | expression ;
+17: switch-stmt -> _switch_ ( expression ) { case-stmts default-stmt }
+18: case-stmts -> case-stmt case-stmts | _e_
+19: case-stmt -> _case_ _NUM_ : statement-list
+20: default-stmt -> _default_ : statement-list | _e_
+21: expression -> var = expression | simple-expression
+22: var -> _ID_ var-rest
+22.1: var-rest -> _e_ | [ expression ]
+23: simple-expression -> additive-expression simple-expression-rest
+23.1: simple-expression-rest ->  relop additive-expression | _e_
+24: relop -> < | ==
+25: additive-expression -> additive-expression addop term | term
+26: addop -> + | -
+27: term -> factor term-rest
+27.1: term-rest -> * factor term-rest | _e_
+28: factor -> ( expression ) | var | call | _NUM_
+29: call -> _ID_ ( args )
+30: args -> arg-list | _e_
+31: arg-list -> expression arg-list-rest
+31.1: arg-list-rest -> , expression arg-list-rest | _e_
+
+
+
