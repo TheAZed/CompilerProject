@@ -69,20 +69,21 @@ class Diagram:
         accepted = ""
         current_state = self.start_state
         while current_state != self.final_state:
-            print(current_state.name, ",", token, "->", end=" ")
             next_state = current_state.get_next_state(token)
             if next_state is None:
-                print("Panic!")
+                print(current_state.name, ",", token, "->", "Panic!")
                 return False, accepted  # panic mode
-            print(next_state[0].name)
+            print(current_state.name, ",", token, "->", next_state[0].name, end=" ")
             current_state, is_edge_terminal = next_state[0], next_state[1]
             if is_edge_terminal:
                 accepted += token
                 token = get_next_token()
+            print("accepted:", accepted)
+
         return True, accepted
 
 
-scanner_output = "aabbbaa"
+scanner_output = "adccccaa"
 pointer = 0
 
 
@@ -104,17 +105,31 @@ s3 = State("S3")
 s4 = State("S4")
 s5 = State("S5")
 s6 = State("S6")
+s7 = State("S7")
+s8 = State("S8")
+s9 = State("S9")
+s10 = State("S10")
+
 
 A_diagram = Diagram(s1, s3)
 B_diagram = Diagram(s4, s6)
+C_diagram = Diagram(s7, s8)
+U_diagram = Diagram(s9, s10)
+
 A = NonTerminal("A", ["a"], A_diagram)
 B = NonTerminal("B", ["b"], B_diagram)
+C = NonTerminal("C", ["c", "d"], C_diagram)
+U = NonTerminal("U", ["b", "c", "d"], U_diagram)
 
 s1.set_next_state(Terminal("a"), s2)
-s2.set_next_state(B, s3)
+s2.set_next_state(U, s3)
 s4.set_next_state(Terminal("b"), s5)
 s5.set_next_state(Terminal("a"), s5)
 s5.set_next_state(Terminal(EPSILON), s6)
+s7.set_next_state(Terminal("c"), s7)
+s7.set_next_state(Terminal("d"), s8)
+s9.set_next_state(B, s10)
+s9.set_next_state(C, s10)
 
 
 flag, accepted = A_diagram.accepts()
