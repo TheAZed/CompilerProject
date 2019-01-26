@@ -14,7 +14,7 @@
 10: compound-stmt -> { declaration-list statement-list }
 11: statement-list -> statement statement-list | _e_
 12: statement -> expression-stmt | compound-stmt | selection-stmt | iteration-stmt | return-stmt | switch-stmt
-13: expression-stmt -> expression ; | continue ; | break ; | ;
+13: expression-stmt -> expression ; | continue ; | break ; | _output_ ( _ID_ ) ; | ;
 14: selection-stmt -> _if_ ( expression ) statement _else_ statement
 15: iteration-stmt -> _while_ ( expression ) statement
 16: return-stmt -> _return_ return-stmt-rest
@@ -29,7 +29,8 @@
 23: simple-expression -> additive-expression simple-expression-rest
 23.1: simple-expression-rest ->  relop additive-expression | _e_
 24: relop -> < | ==
-25: additive-expression -> additive-expression addop term | term
+25: additive-expression -> term additive-expression-rest
+25.1: additive-expression-rest -> addop additive-expression-rest | _e_
 26: addop -> + | -
 27: term -> factor term-rest
 27.1: term-rest -> * factor term-rest | _e_

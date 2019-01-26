@@ -1,0 +1,11 @@
+if
+else
+void
+int
+while
+output
+break
+continue
+switch
+default
+main
