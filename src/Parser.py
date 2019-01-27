@@ -28,9 +28,6 @@ class NonTerminal(Literal):
         self.diagram = diagram
         self.diagram.start_state.non_terminal = self
 
-    def get_firsts(self):
-        return self.first
-
 
 class State:
     def __init__(self, name="", is_end=False, non_terminal=None):
@@ -41,16 +38,18 @@ class State:
 
     def set_next_state(self, literal, state):
         if literal.get_name() == EPSILON:
+            if state.non_terminal is None:
+                state.non_terminal = self.non_terminal
             self.neighbors[EPSILON] = (state, EPSILON, literal)
             return
         if isinstance(literal, Terminal):
+            if state.non_terminal is None:
+                state.non_terminal = self.non_terminal
             self.neighbors[literal.get_name()] = (state, True, literal)
         if isinstance(literal, NonTerminal):
+            if state.non_terminal is None:
+                state.non_terminal = self.non_terminal
             self.neighbors[literal.get_name()] = (state, False, literal)
-            #new_diagram = literal.diagram
-            #new_diagram.final_state.set_next_state(Terminal(EPSILON), state, reduces=True)
-            #for terminal_names in literal.get_firsts():
-            #    self.neighbors[terminal_names] = (new_diagram.start_state, True, literal)
 
     def get_next_state(self, token):
         next_states = []
@@ -114,8 +113,9 @@ def parse(start_state, final_state, scanner=None):
                     dumped_input += token
                     token = get_next_token()
 
-            #print(dumped_input)
-            return False, accepted, parsed
+            print("dumped input:", dumped_input)
+            #return False, accepted, parsed
+            continue
         print(current_state.name, ",", token, "->", next_state[0].name, end=" ")
         current_state, is_edge_terminal = next_state[0], next_state[1]
         if is_edge_terminal == True:  # shift
@@ -126,7 +126,7 @@ def parse(start_state, final_state, scanner=None):
 
 
 
-scanner_output = "$accdbaaaaaa;ab;$"
+scanner_output = "$accdbaaaaloiaa;ab;$"
 pointer = 0
 end_tokens = [";"]
 
@@ -147,6 +147,7 @@ s1 = State("S1")
 s2 = State("S2")
 s3 = State("S3")
 s3_1 = State("S3_1")
+s3_2 = State("S3_2")
 s4 = State("S4")
 s5 = State("S5")
 s6 = State("S6")
@@ -173,6 +174,7 @@ C = NonTerminal("C", ["c", "d"], [";"], C_diagram)
 U = NonTerminal("U", ["b", "c", "d"], [";"], U_diagram)
 S = NonTerminal("S", ["$"], [], S_diagram)
 
+"""
 s1.non_terminal = A
 s2.non_terminal = A
 s3.non_terminal = A
@@ -189,7 +191,7 @@ start.non_terminal = S
 mid1.non_terminal = S
 mid2.non_terminal = S
 final.non_terminal = S
-
+"""
 
 s1.set_next_state(Terminal("a"), s2)
 s2.set_next_state(U, s3)
