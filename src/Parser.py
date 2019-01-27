@@ -52,6 +52,7 @@ class State:
             self.neighbors[literal.get_name()] = (state, False, literal)
 
     def get_next_state(self, token):
+        global STACK
         next_states = []
         edge_is_non_terminal = False
         for literal_name in self.neighbors:
@@ -62,7 +63,10 @@ class State:
                 non_terminal = self.neighbors[literal_name][2]
                 for first_name in non_terminal.first:
                     if first_name == token:
-                        global STACK
+                        next_states.append((non_terminal.diagram.start_state, False, non_terminal))
+                        edge_is_non_terminal = True
+                if len(next_states) == 0:
+                    if EPSILON in non_terminal.first:
                         next_states.append((non_terminal.diagram.start_state, False, non_terminal))
                         edge_is_non_terminal = True
                 if edge_is_non_terminal:
@@ -108,19 +112,35 @@ def parse(start_state, final_state, scanner=None):
         if current_state == final_state and token is None:
             return True, accepted, parsed
         next_state = current_state.get_next_state(token)
+
         if next_state is None:  # panic mode
             print(current_state.name, ",", token, "->", "Panic!")
             dumped_input = ""
             if token is not None:
                 dumped_input += token
-                token = get_next_token()
                 while token not in end_tokens and token is not None:
-                    dumped_input += token
                     token = get_next_token()
-
+                    dumped_input += token
+                if token is not None:
+                    if len(STACK) > 0:
+                        print("HELLO NIGGER. Stack:", end=" ")
+                        print_stack()
+                        last_item_in_stack = STACK.pop()
+                        print("stack out:")
+                        print(last_item_in_stack[0].non_terminal.name)
+                        while token not in last_item_in_stack[0].non_terminal.follow and len(STACK) > 0:
+                            last_item_in_stack = STACK.pop()
+                            print(last_item_in_stack[0].non_terminal.name)
+                        if token in last_item_in_stack[0].non_terminal.follow:
+                            next_state = last_item_in_stack
+                            accepted += token
+                        token = get_next_token()
+            else:
+                return False, accepted, parsed
             print("dumped input:", dumped_input)
             #return False, accepted, parsed
             continue
+
         print(current_state.name, ",", token, "->", next_state[0].name, end=" ")
         current_state, is_edge_terminal = next_state[0], next_state[1]
         if is_edge_terminal == True:  # shift
@@ -131,9 +151,9 @@ def parse(start_state, final_state, scanner=None):
 
 
 
-scanner_output = "$accdbaaaaloiaa;ab;$"
+scanner_output = "$((i+i*i)))*i$"
 pointer = 0
-end_tokens = [";"]
+end_tokens = [";", "$", ")"]
 
 
 def get_next_token():
@@ -148,11 +168,10 @@ def get_next_token():
 token = get_next_token()
 
 
+s0 = State("S0")
 s1 = State("S1")
 s2 = State("S2")
 s3 = State("S3")
-s3_1 = State("S3_1")
-s3_2 = State("S3_2")
 s4 = State("S4")
 s5 = State("S5")
 s6 = State("S6")
@@ -161,39 +180,54 @@ s8 = State("S8")
 s9 = State("S9")
 s10 = State("S10")
 s11 = State("S11")
+s12 = State("S12")
+s13 = State("S13")
+s14 = State("S14")
+s15 = State("S15")
+s16 = State("S16")
+s17 = State("S17")
+
 start = State("$s")
 mid1 = State("$1")
 mid2 = State("$2")
 final = State("$f")
 
 
-A_diagram = Diagram(s1, s3_1)
-B_diagram = Diagram(s4, s6)
-C_diagram = Diagram(s7, s11)
-U_diagram = Diagram(s9, s10)
+E_diagram = Diagram(s0, s2)
+E1_diagram = Diagram(s3, s6)
+T_diagram = Diagram(s7, s9)
+T1_diagram = Diagram(s10, s13)
+F_diagram = Diagram(s14, s17)
 S_diagram = Diagram(start, final)
 
-A = NonTerminal("A", ["a"], ["$"], A_diagram)
-B = NonTerminal("B", ["b"], [";"], B_diagram)
-C = NonTerminal("C", ["c", "d"], [";"], C_diagram)
-U = NonTerminal("U", ["b", "c", "d"], [";"], U_diagram)
-S = NonTerminal("S", ["$"], [], S_diagram)
+E = NonTerminal("E", ["(", "i"], ["$", ")"], E_diagram)
+E1 = NonTerminal("E1", ["+", EPSILON], ["$", ")"], E1_diagram)
+T = NonTerminal("T", ["(", "i"], ["+", "$", ")"], T_diagram)
+T1 = NonTerminal("T1", ["*", EPSILON], ["+", "$", ")"], T1_diagram)
+F = NonTerminal("F", ["(", "i"], ["+", "*", "$", ")"], F_diagram)
+S = NonTerminal("S", ["$"], ["$"], S_diagram)
 
-s1.set_next_state(Terminal("a"), s2)
-s2.set_next_state(U, s3)
-s2.set_next_state(Terminal("b"), s3_2)
-s3.set_next_state(Terminal(";"), s3_1)
-s3_1.set_next_state(Terminal(EPSILON), s1)
-s4.set_next_state(Terminal("b"), s5)
-s5.set_next_state(Terminal("a"), s5)
-s5.set_next_state(Terminal(EPSILON), s6)
-s7.set_next_state(Terminal("c"), s7)
-s7.set_next_state(Terminal("d"), s8)
-s9.set_next_state(B, s10)
-s9.set_next_state(C, s10)
-s8.set_next_state(U, s11)
+STACK.append((start, True, Terminal("$")))
+
+s0.set_next_state(T, s1)
+s1.set_next_state(E1, s2)
+s3.set_next_state(Terminal("+"), s4)
+s3.set_next_state(Terminal(EPSILON), s6)
+s4.set_next_state(T, s5)
+s5.set_next_state(E1, s6)
+s7.set_next_state(F, s8)
+s8.set_next_state(T1, s9)
+s10.set_next_state(Terminal("*"), s11)
+s10.set_next_state(Terminal(EPSILON), s13)
+s11.set_next_state(F, s12)
+s12.set_next_state(T1, s13)
+s14.set_next_state(Terminal("("), s15)
+s14.set_next_state(Terminal("i"), s17)
+s15.set_next_state(E, s16)
+s16.set_next_state(Terminal(")"), s17)
+
 start.set_next_state(Terminal("$"), mid1)
-mid1.set_next_state(A, mid2)
+mid1.set_next_state(E, mid2)
 mid2.set_next_state(Terminal("$"), final)
 
 flag, accepted, parsed = parse(start, final)
