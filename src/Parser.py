@@ -80,10 +80,15 @@ class State:
                 return None
 
         if len(next_states) > 1:  # grammar is not predictive
-            message = "following states are available with current token: " + token + "\n"
-            for state in next_states:
-                message += state.name
-            raise Exception(message)
+            message = "more than one choice from state '" + self.name + "' with token '" + token + "': "
+            for state, _, _ in next_states:
+                message += state.name + ", "
+
+            class UnPredictiveGrammarException(Exception):
+                __module__ = Exception.__module__
+                pass
+
+            raise UnPredictiveGrammarException(message[:-2])
 
 
 class Diagram:
@@ -174,27 +179,9 @@ C = NonTerminal("C", ["c", "d"], [";"], C_diagram)
 U = NonTerminal("U", ["b", "c", "d"], [";"], U_diagram)
 S = NonTerminal("S", ["$"], [], S_diagram)
 
-"""
-s1.non_terminal = A
-s2.non_terminal = A
-s3.non_terminal = A
-s3_1.non_terminal = A
-s4.non_terminal = B
-s5.non_terminal = B
-s6.non_terminal = B
-s7.non_terminal = C
-s8.non_terminal = C
-s9.non_terminal = U
-s10.non_terminal = U
-s11.non_terminal = C
-start.non_terminal = S
-mid1.non_terminal = S
-mid2.non_terminal = S
-final.non_terminal = S
-"""
-
 s1.set_next_state(Terminal("a"), s2)
 s2.set_next_state(U, s3)
+s2.set_next_state(Terminal("b"), s3_2)
 s3.set_next_state(Terminal(";"), s3_1)
 s3_1.set_next_state(Terminal(EPSILON), s1)
 s4.set_next_state(Terminal("b"), s5)
