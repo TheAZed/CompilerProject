@@ -1,2 +1,2 @@
-ahmad21 = asghar + -234;
+ahmad21 = asghar + - 234;
 ahmad(34/*hello ash*/, hah) == 234;

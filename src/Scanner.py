@@ -38,7 +38,7 @@ class Scanner:
             self.next_char = self.file.read(1)
         while self.next_char != '':
             self.go_next = True
-            state = self.state_machine.move(self.next_char, self.previous_token)
+            state = self.state_machine.move(self.next_char, self.current_token)
             if state == -1:
                 self.errors.append("Invalid " + self.next_char + "!")
                 self.state_machine.reset()
@@ -65,6 +65,7 @@ class Scanner:
                 elif state == 13:
                     self.token_list.append(Token(token_str, "relop"))
                 self.previous_token = self.token_list[len(self.token_list) - 2]
+                self.current_token = self.token_list[len(self.token_list) - 1]
                 self.state_machine.reset()
                 return self.token_list[len(self.token_list) - 1]
             if self.go_next:
@@ -72,6 +73,7 @@ class Scanner:
         self.token_list.append(Token("EOF", "EOF"))
         self.previous_token = self.token_list[len(self.token_list) - 2]
         self.state_machine.reset()
+        self.current_token = self.token_list[len(self.token_list) - 1]
         return self.token_list[len(self.token_list) - 1]
 
 
@@ -96,10 +98,12 @@ class StateMachine:
             if self.current_pointer == 0 and current_input == '+' or current_input == '-':
                 if prev_token is not None and prev_token.token_type == "ID" or prev_token.token_type == "NUM":
                     self.current_pointer = 6
+                    self.accumulated_string += current_input
                     self.done = True
                     return self.current_pointer
                 else:
                     self.current_pointer = 3
+                    self.accumulated_string += current_input
                     return 0
             while True:
                 possible_edges = [edge for edge in self.edge_list if edge[0] == self.current_pointer]
