@@ -1,5 +1,4 @@
 import re
-import threading
 
 reserved_words = [word for word in open("../Documents/ReservedWords.txt", "r")]
 symbol_list = [symbol for symbol in open("../Documents/LanguageSymbols.txt", "r")]
@@ -28,11 +27,14 @@ class Scanner:
                                           self.machine_finals)
         self.go_next = True
         self.next_char = ''
+        self.current_block = None
+        """:type : Block"""
 
     def get_next_token(self):
         """
 
-        :return: :type Token
+        :return:
+        :rtype: Token
         """
         if self.go_next:
             self.next_char = self.file.read(1)
@@ -49,8 +51,14 @@ class Scanner:
                 else:
                     token_str = self.state_machine.accumulated_string
                 if state == 2:
-                    #  FIXME: Should check parse table
-                    self.token_list.append(Token(token_str, "ID"))
+                    possible_variable = self.current_block.find_variable(token_str)
+                    if possible_variable is None:
+                        new_token = Token(token_str, "ID", self.current_block)
+                        new_var = Variable(new_token, "", None)
+                        self.current_block.static_variables.append(new_var)
+                        self.token_list.append(new_token)
+                    else:
+                        self.token_list.append(possible_variable.token)
                 elif state == 5:
                     self.token_list.append(Token(token_str, "NUM"))
                 elif state == 6:
@@ -64,17 +72,20 @@ class Scanner:
                     self.token_list.append(Token(token_str, "Sym"))
                 elif state == 13:
                     self.token_list.append(Token(token_str, "relop"))
-                self.previous_token = self.token_list[len(self.token_list) - 2]
-                self.current_token = self.token_list[len(self.token_list) - 1]
+                try:
+                    self.previous_token = self.token_list[-2]
+                except IndexError:
+                    self.previous_token = None
+                self.current_token = self.token_list[-1]
                 self.state_machine.reset()
                 return self.token_list[len(self.token_list) - 1]
             if self.go_next:
                 self.next_char = self.file.read(1)
         self.token_list.append(Token("EOF", "EOF"))
-        self.previous_token = self.token_list[len(self.token_list) - 2]
+        self.previous_token = self.token_list[-2]
         self.state_machine.reset()
-        self.current_token = self.token_list[len(self.token_list) - 1]
-        return self.token_list[len(self.token_list) - 1]
+        self.current_token = self.token_list[-1]
+        return self.token_list[-1]
 
 
 class StateMachine:
@@ -89,9 +100,12 @@ class StateMachine:
     def move(self, current_input, prev_token):
         """
 
-        :param current_input: :type str
-        :param prev_token: :type Token
-        :return: :type int
+        :param current_input:
+        :type current_input: str
+        :param prev_token:
+        :type prev_token: Token
+        :return:
+        :rtype: int
         """
         if not self.done:
             # Special case
@@ -142,14 +156,22 @@ class StateMachine:
 
 
 class Token:
-    def __init__(self, string, token_type):
+    def __init__(self, string, token_type, block=None, value=None):
         """
 
-        :param string: :type str
-        :param token_type: :type str
+        :param string:
+        :type string: str
+        :param token_type:
+        :type token_type: str
+        :param block:
+        :type block: Block | None
+        :param value:
+        :type value: int | None
         """
         self.string = string
         self.token_type = token_type
+        self.block = block
+        self.value = value
 
     def __eq__(self, other):
         if other is None:
@@ -161,3 +183,59 @@ class Token:
         return False
 
 
+class Block:
+    def __init__(self, level, parent_block, token=None):
+        """
+
+        :param level:
+        :type level: int
+        :param parent_block:
+        :type parent_block: Block | None
+        :param token:
+        :type token: Token | None
+        """
+        self.level = level
+        self.parent_block = parent_block
+        self.static_variables = []
+        """ :type : Variable[] """
+        self.stack = []
+        self.heap = []
+        self.return_address = None
+        self.parameters = []
+        self.token = token
+
+    def find_variable(self, token_name):
+        """
+        look for this id in self or parents
+        :param token_name:
+        :type token_name: str
+        :return:
+        :rtype: Variable
+        """
+        found_var = None
+        for var in self.static_variables:
+            if var.token.string == token_name:
+                found_var = var
+                break
+        if found_var is None and self.parent_block is not None:
+            found_var = self.parent_block.find_variable(token_name)
+        return found_var
+
+
+class Variable:
+    def __init__(self, token, var_type, value_type, value=None):
+        """
+
+        :param token:
+        :type token: Token
+        :param var_type:
+        :type var_type: str
+        :param value_type:
+        :type value_type: str | None
+        :param value:
+        :type value: int | None
+        """
+        self.token = token
+        self.var_type = var_type
+        self.value_type = value_type
+        self.value = value
