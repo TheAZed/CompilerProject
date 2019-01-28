@@ -8,4 +8,3 @@ break
 continue
 switch
 default
-main

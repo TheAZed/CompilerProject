@@ -1,10 +1,5 @@
 import re
 
-reserved_words = [word for word in open("../Documents/ReservedWords.txt", "r")]
-symbol_list = [symbol for symbol in open("../Documents/LanguageSymbols.txt", "r")]
-delim_list = symbol_list[0:9]
-whitespaces = ['\t', '\n', '\r', ' ']
-
 
 class Scanner:
 
@@ -29,6 +24,10 @@ class Scanner:
         self.next_char = ''
         self.current_block = None
         """:type : Block"""
+        self.reserved_words = [word[:-1] for word in open("../Documents/ReservedWords.txt", "r")]
+        self.symbol_list = [symbol for symbol in open("../Documents/LanguageSymbols.txt", "r")]
+        self.delim_list = self.symbol_list[0:9]
+        self.whitespaces = ['\t', '\n', '\r', ' ']
 
     def get_next_token(self):
         """
@@ -51,27 +50,32 @@ class Scanner:
                 else:
                     token_str = self.state_machine.accumulated_string
                 if state == 2:
-                    possible_variable = self.current_block.find_variable(token_str)
-                    if possible_variable is None:
-                        new_token = Token(token_str, "ID", self.current_block)
-                        new_var = Variable(new_token, "", None)
-                        self.current_block.static_variables.append(new_var)
-                        self.token_list.append(new_token)
+                    if token_str in self.reserved_words:
+                        self.token_list.append(Token(token_str, token_str))
                     else:
-                        self.token_list.append(possible_variable.token)
+                        possible_variable = self.current_block.find_variable(token_str)
+                        if possible_variable is None:
+                            new_token = Token(token_str, "ID", self.current_block)
+                            new_var = Variable(new_token, "", None)
+                            self.current_block.static_variables.append(new_var)
+                            self.token_list.append(new_token)
+                        else:
+                            self.token_list.append(possible_variable.token)
                 elif state == 5:
                     self.token_list.append(Token(token_str, "NUM"))
                 elif state == 6:
                     if token_str == "<":
-                        self.token_list.append(Token(token_str, "relop"))
+                        self.token_list.append(Token(token_str, token_str))
                     else:
-                        self.token_list.append(Token(token_str, "Sym"))
+                        self.token_list.append(Token(token_str, token_str))
                 elif state == 10:
-                    self.token_list.append(Token(token_str, "Comment"))
+                    # self.token_list.append(Token(token_str, token_str))
+                    self.state_machine.reset()
+                    continue
                 elif state == 12:
-                    self.token_list.append(Token(token_str, "Sym"))
+                    self.token_list.append(Token(token_str, token_str))
                 elif state == 13:
-                    self.token_list.append(Token(token_str, "relop"))
+                    self.token_list.append(Token(token_str, token_str))
                 try:
                     self.previous_token = self.token_list[-2]
                 except IndexError:

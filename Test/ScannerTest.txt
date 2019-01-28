@@ -1,2 +1,2 @@
-ahmad21 = asghar + - 234;
+ahmad21 = asghar + - 234;case shit continue main () iffuck
 ahmad(34/*hello ash*/, hah) == 234;
