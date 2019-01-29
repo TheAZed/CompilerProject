@@ -16,6 +16,7 @@ class Librarian:
         self.code_generator = CodeGenerator(scanner, self)
         self.semantic_checker = SemanticChecker(scanner, self)
         self.children = [self.code_generator, self.semantic_checker]
+        self.set_block(self.block)
 
     def call_func(self, func_name):
         if func_name in self.functions:

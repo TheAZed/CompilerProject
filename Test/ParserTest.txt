@@ -1,1 +1,12 @@
 int var1;
+int function1(int a){
+    int c;
+    c = 10;
+    return c;
+}
+void main(void){
+    int i;
+    i = 5;
+    if (function1(i))
+        return;
+}
