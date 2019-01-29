@@ -6,6 +6,10 @@ def show_all_errors():
         print(error.error_msg)
 
 
+def add_error(error_type, error_msg):
+    error_list.append(Error(error_type, error_msg))
+
+
 class Error:
     def __init__(self, error_type, error_msg):
         """
