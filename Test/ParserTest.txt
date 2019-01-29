@@ -1,1 +1,1 @@
-(sad * (saslord((**) * + asflak + ((sj) * (a + (a * (a))))
+int var1;

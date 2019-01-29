@@ -304,6 +304,7 @@ mid1 = State("mid1")
 final = State("final")
 # </editor-fold>
 
+# <editor-fold desc="Setting Functions">
 s4.func_names = ["save_value_type"]
 s5.func_names = ["save_variable_name"]
 s6.func_names = ["save_variable_type"]
@@ -327,6 +328,7 @@ s96.func_names = ["remove_id_from_ss"]
 s96.func_names = ["remove_id_from_ss"]
 s90.func_names = ["check_declared_id", "save_id_for_check"]
 s115.func_names = ["check_declared_id", "save_id_for_check"]
+# </editor-fold>
 
 # <editor-fold desc="Declaring Diagrams">
 program_diagram = Diagram(s1, s3)
