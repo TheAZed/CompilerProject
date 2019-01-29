@@ -251,3 +251,9 @@ class FunctionVariable(Variable):
         self.return_address = None
         self.return_value = None
         self.parameters = []
+
+
+class ArrayVariable(Variable):
+    def __init__(self, token, var_type, block, value_type=None, value=None, length=None):
+        super().__init__(token, var_type, block, value_type, value)
+        self.length = length
