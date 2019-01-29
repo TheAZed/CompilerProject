@@ -545,9 +545,6 @@ s122.set_next_state(EPSILON, s124)
 s123.set_next_state(",", s122)
 s123.set_next_state(EPSILON, s124)
 
-
-
-
 start.set_next_state(program, mid1)
 mid1.set_next_state(Terminal("EOF"), final)
 # </editor-fold>
