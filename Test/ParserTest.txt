@@ -2,11 +2,13 @@ int var1;
 int function1(int a){
     int c;
     c = 10;
-    return c;
 }
 void main(void){
     int i;
     i = 5;
-    if (function1(i))
-        return;
+    /*function1(i);*/
+    if (i == 5)
+        i = 10;
+    else
+        i = 6;
 }

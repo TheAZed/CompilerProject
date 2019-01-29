@@ -390,7 +390,7 @@ factor = NonTerminal("factor", ['(', 'NUM', 'ID'], ['*', '+', '-', '<', '==', ',
 fun_dec = NonTerminal("fun_dec", ['('], ['int', 'void', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', 'EOF'], fun_dec_diagram)
 iter_stmt = NonTerminal("iter_stmt", ['while'], ['else', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', '}', 'case', 'default'], iter_stmt_diagram)
 list_index = NonTerminal("list_index", ['[', EPSILON], ['=', '*', '+', '-', '<', '==', ',', ')', ']', ';'], list_index_diagram)
-param = NonTerminal("param", ['int', 'void'], [',', ')'], param_diagram)
+param = NonTerminal("param", ['int'], [',', ')'], param_diagram)
 params = NonTerminal("params", ['void', 'int'], [')'], params_diagram)
 program = NonTerminal("program", ['EOF', EPSILON, 'int', 'void'], ['EOF'], program_diagram)
 return_stmt = NonTerminal("return_stmt", ['return'], ['else', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', '}', 'case', 'default'], return_stmt_diagram)
