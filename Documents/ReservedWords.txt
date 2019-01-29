@@ -9,3 +9,4 @@ continue
 switch
 default
 case
+return

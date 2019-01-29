@@ -6,7 +6,7 @@ int function1(int a){
 void main(void){
     int i;
     i = 5;
-    /*function1(i);*/
+    function1(i);
     if (i == 5)
         i = 10;
     else

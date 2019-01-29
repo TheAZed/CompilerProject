@@ -129,13 +129,13 @@ class SemanticChecker:
 
     def save_variable_type(self):
         next_str = self.scanner.current_token.string
-        possible_variable = self.block.find_variable(next_str)
+        possible_variable = self.block.find_variable(self.ss[-1])
         if possible_variable is not None:
             if possible_variable.block == self.block:
                 ErrorMaster.add_error("Semantic", next_str + " is already declared in this scope!")
                 return
         if next_str == ';':
-            variable = Variable(self.scanner.current_token, "", self.block)
+            variable = Variable(self.scanner.previous_token, "", self.block)
             self.block.static_variables.append(variable)
             variable.value_type = self.ss[-2]
             variable.value = 0
@@ -143,14 +143,15 @@ class SemanticChecker:
             self.ss.pop()
             self.ss.pop()
         elif next_str == '[':
-            variable = ArrayVariable(self.scanner.current_token, "", self.block)
+            variable = ArrayVariable(self.scanner.previous_token, "", self.block)
             self.block.static_variables.append(variable)
             variable.var_type = "array"
             variable.value_type = self.ss[-2]
             self.ss.append(variable)
             # Should free some space later and save the pointer in value
         elif next_str == '(':
-            variable = FunctionVariable(self.scanner.current_token, "", self.block)
+            variable = FunctionVariable(self.scanner.previous_token, "", self.block)
+            self.block.static_variables.append(variable)
             variable.var_type = "func"
             variable.value_type = self.ss[-2]
             # assigning pointer to the function as the value
@@ -256,7 +257,7 @@ class SemanticChecker:
         if type(self.ss[-1]) != FunctionVariable:
             ErrorMaster.add_error("Semantic", "Variable " + self.ss[-1].token.string + " is not a function")
             return
-        if self.ss[-2] >= len(self.ss[-1].paremeters):
+        if self.ss[-2] >= len(self.ss[-1].parameters):
             ErrorMaster.add_error("Semantic", "Too many arguments for " + self.ss[-1].token.string)
         else:
             self.ss[-2] += 1
