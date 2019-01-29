@@ -70,6 +70,7 @@ class State:
     def get_next_state(self, token):
         global STACK
         next_states = []
+        epsilons_added_indexes = []
         edge_is_non_terminal = False
         for literal_name in self.neighbors:
             if self.neighbors[literal_name][1]:  # Terminal
@@ -83,10 +84,12 @@ class State:
                         edge_is_non_terminal = True
                 if len(next_states) == 0:
                     if EPSILON in non_terminal.first:
+                        epsilons_added_indexes.append(len(next_states))
                         next_states.append((non_terminal.diagram.start_state, False, non_terminal))
                         edge_is_non_terminal = True
                 if edge_is_non_terminal:
                     STACK.append(self.neighbors[literal_name])
+
 
         if len(next_states) == 1:
             return next_states[0]
@@ -98,6 +101,16 @@ class State:
                 return self.neighbors[EPSILON]
             else:  # panic
                 return None
+
+        if len(next_states) > 1:
+            non_epsilon_states = []
+            for i in range(len(next_states)):
+                if i not in epsilons_added_indexes:
+                    non_epsilon_states.append(next_states[i])
+
+            if len(non_epsilon_states) == 1:
+                return non_epsilon_states[0]
+
 
         if len(next_states) > 1:  # grammar is not predictive
             message = "more than one choice from state '" + self.name + "' with token '" + token + "': "
@@ -304,6 +317,7 @@ mid1 = State("mid1")
 final = State("final")
 # </editor-fold>
 
+# <editor-fold desc="Setting Functions">
 s4.func_names = ["save_value_type"]
 s5.func_names = ["save_variable_name"]
 s6.func_names = ["save_variable_type"]
@@ -327,6 +341,7 @@ s96.func_names = ["remove_id_from_ss"]
 s96.func_names = ["remove_id_from_ss"]
 s90.func_names = ["check_declared_id", "save_id_for_check"]
 s115.func_names = ["check_declared_id", "save_id_for_check"]
+# </editor-fold>
 
 # <editor-fold desc="Declaring Diagrams">
 program_diagram = Diagram(s1, s3)
@@ -362,32 +377,32 @@ S_diagram = Diagram(start, final)
 
 # <editor-fold desc="Declaring NonTerminals">
 add_expr = NonTerminal("add_expr", ['(', 'NUM', 'ID'], ['<', '==', ',', ')', ']', ';'], add_expr_diagram)
-add_expr1 = NonTerminal("add_expr1", ['e', '+', '-'], ['<', '==', ',', ')', ']', ';'], add_expr1_diagram)
-args = NonTerminal("args", ['e', 'ID', '(', 'NUM'], [')'], args_diagram)
+add_expr1 = NonTerminal("add_expr1", [EPSILON, '+', '-'], ['<', '==', ',', ')', ']', ';'], add_expr1_diagram)
+args = NonTerminal("args", [EPSILON, 'ID', '(', 'NUM'], [')'], args_diagram)
 case_stmt = NonTerminal("case_stmt", ['case'], ['case', 'ID', '(', 'NUM', 'default'], case_stmt_diagram)
-case_stmts = NonTerminal("case_stmts", ['e', 'case'], ['ID', '(', 'NUM', 'default'], case_stmts_diagram)
+case_stmts = NonTerminal("case_stmts", [EPSILON, 'case'], ['ID', '(', 'NUM', 'default'], case_stmts_diagram)
 comp_stmt = NonTerminal("comp_stmt", ['{'], ['else', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', 'int', 'void', 'EOF', '}', 'case', 'default'], comp_stmt_diagram)
 dec = NonTerminal("dec", ['int', 'void'], ['int', 'void', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', 'EOF'], dec_diagram)
-default = NonTerminal("default", ['default', 'e'], ['}'], default_diagram)
+default = NonTerminal("default", ['default', EPSILON], ['}'], default_diagram)
 expr = NonTerminal("expr", ['ID', '(', 'NUM'], [',', ')', ']', ';'], expr_diagram)
 expr_stmt = NonTerminal("expr_stmt", ['continue', 'break', ';', 'ID', '(', 'NUM'], ['else', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', '}', 'case', 'default'], expr_stmt_diagram)
 factor = NonTerminal("factor", ['(', 'NUM', 'ID'], ['*', '+', '-', '<', '==', ',', ')', ']', ';'], factor_diagram)
-fun_dec = NonTerminal("fun_dec", ['int', 'void'], ['int', 'void', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', 'EOF'], fun_dec_diagram)
+fun_dec = NonTerminal("fun_dec", ['('], ['int', 'void', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', 'EOF'], fun_dec_diagram)
 iter_stmt = NonTerminal("iter_stmt", ['while'], ['else', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', '}', 'case', 'default'], iter_stmt_diagram)
-list_index = NonTerminal("list_index", ['[', 'e'], ['=', '*', '+', '-', '<', '==', ',', ')', ']', ';'], list_index_diagram)
-param = NonTerminal("param", ['int', 'void'], [',', ')'], param_diagram)
+list_index = NonTerminal("list_index", ['[', EPSILON], ['=', '*', '+', '-', '<', '==', ',', ')', ']', ';'], list_index_diagram)
+param = NonTerminal("param", ['int'], [',', ')'], param_diagram)
 params = NonTerminal("params", ['void', 'int'], [')'], params_diagram)
-program = NonTerminal("program", ['EOF', 'e', 'int', 'void'], ['EOF'], program_diagram)
+program = NonTerminal("program", ['EOF', EPSILON, 'int', 'void'], ['EOF'], program_diagram)
 return_stmt = NonTerminal("return_stmt", ['return'], ['else', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', '}', 'case', 'default'], return_stmt_diagram)
 select_stmt = NonTerminal("select_stmt", ['if'], ['else', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', '}', 'case', 'default'], select_stmt_diagram)
 simple_expr = NonTerminal("simple_expr", ['(', 'NUM', 'ID'], [',', ')', ']', ';'], simple_expr_diagram)
-simple_expr1 = NonTerminal("simple_expr1", ['e', '<', '=='], [',', ')', ']', ';'], simple_expr1_diagram)
+simple_expr1 = NonTerminal("simple_expr1", [EPSILON, '<', '=='], [',', ')', ']', ';'], simple_expr1_diagram)
 stmt = NonTerminal("stmt", ['continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while'], ['else', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', '}', 'case', 'default'], stmt_diagram)
 switch_stmt = NonTerminal("switch_stmt", ['switch'], ['else', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', '}', 'case', 'default'], switch_stmt_diagram)
 term = NonTerminal("term", ['(', 'NUM', 'ID'], ['+', '-', '<', '==', ',', ')', ']', ';'], term_diagram)
-term1 = NonTerminal("term1", ['*', 'e'], ['+', '-', '<', '==', ',', ')', ']', ';'], term1_diagram)
+term1 = NonTerminal("term1", ['*', EPSILON], ['+', '-', '<', '==', ',', ')', ']', ';'], term1_diagram)
 var = NonTerminal("var", ['ID'], ['=', '*', '+', '-', '<', '==', ',', ')', ']', ';'], var_diagram)
-var_dec = NonTerminal("var_dec", ['int', 'void'], ['int', 'void', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', 'EOF'], var_dec_diagram)
+var_dec = NonTerminal("var_dec", ['[', ';'], ['int', 'void', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', 'EOF'], var_dec_diagram)
 
 # </editor-fold>
 
@@ -529,9 +544,6 @@ s122.set_next_state(expr, s123)
 s122.set_next_state(EPSILON, s124)
 s123.set_next_state(",", s122)
 s123.set_next_state(EPSILON, s124)
-
-
-
 
 start.set_next_state(program, mid1)
 mid1.set_next_state(Terminal("EOF"), final)
