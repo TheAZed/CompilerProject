@@ -1,11 +1,12 @@
 import re
 
+from src import ErrorMaster
+
 
 class Scanner:
 
     def __init__(self, file_address):
         super().__init__()
-        self.errors = []
         self.file = open(file_address, "r")
         self.previous_token = None
         self.current_token = None
@@ -41,7 +42,7 @@ class Scanner:
             self.go_next = True
             state = self.state_machine.move(self.next_char, self.current_token)
             if state == -1:
-                self.errors.append("Invalid " + self.next_char + "!")
+                ErrorMaster.add_error("Syntax", "Invalid " + self.next_char + "!")
                 self.state_machine.reset()
             elif state > 0:
                 self.go_next = [f_state[1] for f_state in self.machine_finals if f_state[0] == state][0]
@@ -56,8 +57,6 @@ class Scanner:
                         possible_variable = self.current_block.find_variable(token_str)
                         if possible_variable is None:
                             new_token = Token(token_str, "ID", self.current_block)
-                            new_var = Variable(new_token, "", None)
-                            self.current_block.static_variables.append(new_var)
                             self.token_list.append(new_token)
                         else:
                             self.token_list.append(possible_variable.token)
@@ -181,22 +180,22 @@ class Token:
         if other is None:
             return False
         if type(other) == Token:
-            return self.string == other.string
+            return self.string == other.string and self.token_type == other.token_type
         if type(other) == str:
             return self.string == other
         return False
 
 
 class Block:
-    def __init__(self, level, parent_block, token=None):
+    def __init__(self, level, parent_block, func_var=None):
         """
 
         :param level:
         :type level: int
         :param parent_block:
         :type parent_block: Block | None
-        :param token:
-        :type token: Token | None
+        :param func_var:
+        :type func_var: FunctionVariable | None
         """
         self.level = level
         self.parent_block = parent_block
@@ -204,9 +203,7 @@ class Block:
         """ :type : Variable[] """
         self.stack = []
         self.heap = []
-        self.return_address = None
-        self.parameters = []
-        self.token = token
+        self.func_var = func_var
 
     def find_variable(self, token_name):
         """
@@ -227,13 +224,15 @@ class Block:
 
 
 class Variable:
-    def __init__(self, token, var_type, value_type, value=None):
+    def __init__(self, token, var_type, block, value_type=None, value=None):
         """
 
         :param token:
         :type token: Token
         :param var_type:
         :type var_type: str
+        :param block:
+        :type block: Block | None
         :param value_type:
         :type value_type: str | None
         :param value:
@@ -241,5 +240,14 @@ class Variable:
         """
         self.token = token
         self.var_type = var_type
+        self.block = block
         self.value_type = value_type
         self.value = value
+
+
+class FunctionVariable(Variable):
+    def __init__(self, token, var_type, block, value_type=None, value=None):
+        super().__init__(token, var_type, block, value_type, value)
+        self.return_address = None
+        self.return_value = None
+        self.parameters = []

@@ -8,3 +8,4 @@ break
 continue
 switch
 default
+case
