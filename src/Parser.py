@@ -70,6 +70,7 @@ class State:
     def get_next_state(self, token):
         global STACK
         next_states = []
+        epsilons_added_indexes = []
         edge_is_non_terminal = False
         for literal_name in self.neighbors:
             if self.neighbors[literal_name][1]:  # Terminal
@@ -83,10 +84,12 @@ class State:
                         edge_is_non_terminal = True
                 if len(next_states) == 0:
                     if EPSILON in non_terminal.first:
+                        epsilons_added_indexes.append(len(next_states))
                         next_states.append((non_terminal.diagram.start_state, False, non_terminal))
                         edge_is_non_terminal = True
                 if edge_is_non_terminal:
                     STACK.append(self.neighbors[literal_name])
+
 
         if len(next_states) == 1:
             return next_states[0]
@@ -98,6 +101,16 @@ class State:
                 return self.neighbors[EPSILON]
             else:  # panic
                 return None
+
+        if len(next_states) > 1:
+            non_epsilon_states = []
+            for i in range(len(next_states)):
+                if i not in epsilons_added_indexes:
+                    non_epsilon_states.append(next_states[i])
+
+            if len(non_epsilon_states) == 1:
+                return non_epsilon_states[0]
+
 
         if len(next_states) > 1:  # grammar is not predictive
             message = "more than one choice from state '" + self.name + "' with token '" + token + "': "
