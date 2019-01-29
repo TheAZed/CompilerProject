@@ -1,5 +1,10 @@
+from src.FunctionLibrary import Librarian
+from src.Scanner import Scanner
 EPSILON = "epsilon"
 STACK = []
+SCANNER = Scanner("../Test/ParserTest.txt")
+LIBRARIAN = Librarian(scanner=SCANNER)
+LIBRARIAN.call_func("generate_first_block")
 
 
 def print_stack():
@@ -35,21 +40,32 @@ class State:
         self.non_terminal = non_terminal
         self.neighbors = {}  # {terminal.name(str): (state, is edge terminal?, literal)}
         self.is_end = is_end
+        self.func_names = []
+
+    def set_function(self, func_name):
+        self.func_names.append(func_name)
+
+    def call_functions(self):
+        for func_name in self.func_names:
+            LIBRARIAN.call_func(func_name)
 
     def set_next_state(self, literal, state):
-        if literal.get_name() == EPSILON:
-            if state.non_terminal is None:
-                state.non_terminal = self.non_terminal
-            self.neighbors[EPSILON] = (state, EPSILON, literal)
-            return
-        if isinstance(literal, Terminal):
-            if state.non_terminal is None:
-                state.non_terminal = self.non_terminal
-            self.neighbors[literal.get_name()] = (state, True, literal)
-        if isinstance(literal, NonTerminal):
-            if state.non_terminal is None:
-                state.non_terminal = self.non_terminal
-            self.neighbors[literal.get_name()] = (state, False, literal)
+        if isinstance(literal, str):
+            self.set_next_state(Terminal(literal), state)
+        else:
+            if literal.get_name() == EPSILON:
+                if state.non_terminal is None:
+                    state.non_terminal = self.non_terminal
+                self.neighbors[EPSILON] = (state, EPSILON, literal)
+                return
+            if isinstance(literal, Terminal):
+                if state.non_terminal is None:
+                    state.non_terminal = self.non_terminal
+                self.neighbors[literal.get_name()] = (state, True, literal)
+            if isinstance(literal, NonTerminal):
+                if state.non_terminal is None:
+                    state.non_terminal = self.non_terminal
+                self.neighbors[literal.get_name()] = (state, False, literal)
 
     def get_next_state(self, token):
         global STACK
@@ -102,68 +118,56 @@ class Diagram:
         self.final_state.is_end = True
 
 
-def parse(start_state, final_state, scanner=None):
+def parse(start_state, final_state):
     global token, STACK
     parsed = ""
     accepted = ""
     current_state = start_state
     while True:
         #print_stack()
-        if current_state == final_state and token is None:
+        if current_state == final_state and token == "EOF":
             return True, accepted, parsed
         next_state = current_state.get_next_state(token)
 
+        """Panic mode is handled below. It does not work well..."""
         if next_state is None:  # panic mode
+            if token is None:
+                return False, accepted, parsed
             print(current_state.name, ",", token, "->", "Panic!")
             dumped_input = ""
-            if token is not None:
-                dumped_input += token
-                while token not in end_tokens and token is not None:
-                    token = get_next_token()
+            dumped_input += token
+            token = get_next_token()
+            if len(STACK) > 0:
+                last_item_in_stack = STACK.pop()
+                while token not in last_item_in_stack[2].follow and token is not None:
                     dumped_input += token
-                if token is not None:
-                    if len(STACK) > 0:
-                        print("HELLO NIGGER. Stack:", end=" ")
-                        print_stack()
-                        last_item_in_stack = STACK.pop()
-                        print("stack out:")
-                        print(last_item_in_stack[0].non_terminal.name)
-                        while token not in last_item_in_stack[0].non_terminal.follow and len(STACK) > 0:
-                            last_item_in_stack = STACK.pop()
-                            print(last_item_in_stack[0].non_terminal.name)
-                        if token in last_item_in_stack[0].non_terminal.follow:
-                            next_state = last_item_in_stack
-                            accepted += token
-                        token = get_next_token()
+                    token = get_next_token()
+                #next_state = last_item_in_stack
+                #accepted += token
+                #token = get_next_token()
             else:
                 return False, accepted, parsed
             print("dumped input:", dumped_input)
-            #return False, accepted, parsed
             continue
+            #return False, accepted, parsed
 
         print(current_state.name, ",", token, "->", next_state[0].name, end=" ")
+        current_state.call_functions()
         current_state, is_edge_terminal = next_state[0], next_state[1]
         if is_edge_terminal == True:  # shift
-            if token is not None:
+            if token != "EOF":
                 accepted += token
             token = get_next_token()
         print("accepted:", accepted)
 
 
-
-scanner_output = "$((i+i*i)))*i$"
-pointer = 0
-end_tokens = [";", "$", ")"]
+token = ""
 
 
 def get_next_token():
-    global pointer
-    pointer += 1
-    try:
-        return scanner_output[pointer - 1]
-    except IndexError:
+    if token == "EOF" or token is None:
         return None
-
+    return SCANNER.get_next_token().token_type
 
 token = get_next_token()
 
@@ -187,10 +191,9 @@ s15 = State("S15")
 s16 = State("S16")
 s17 = State("S17")
 
-start = State("$s")
-mid1 = State("$1")
-mid2 = State("$2")
-final = State("$f")
+start = State("start")
+mid1 = State("mid1")
+final = State("final")
 
 
 E_diagram = Diagram(s0, s2)
@@ -200,35 +203,34 @@ T1_diagram = Diagram(s10, s13)
 F_diagram = Diagram(s14, s17)
 S_diagram = Diagram(start, final)
 
-E = NonTerminal("E", ["(", "i"], ["$", ")"], E_diagram)
-E1 = NonTerminal("E1", ["+", EPSILON], ["$", ")"], E1_diagram)
-T = NonTerminal("T", ["(", "i"], ["+", "$", ")"], T_diagram)
-T1 = NonTerminal("T1", ["*", EPSILON], ["+", "$", ")"], T1_diagram)
-F = NonTerminal("F", ["(", "i"], ["+", "*", "$", ")"], F_diagram)
-S = NonTerminal("S", ["$"], ["$"], S_diagram)
+E = NonTerminal("E", ["(", "ID"], ["EOF", ")"], E_diagram)
+E1 = NonTerminal("E1", ["+", EPSILON], ["EOF", ")"], E1_diagram)
+T = NonTerminal("T", ["(", "ID"], ["+", "EOF", ")"], T_diagram)
+T1 = NonTerminal("T1", ["*", EPSILON], ["+", "EOF", ")"], T1_diagram)
+F = NonTerminal("F", ["(", "ID"], ["+", "*", "EOF", ")"], F_diagram)
+S = NonTerminal("S", ["(", "ID"], ["EOF"], S_diagram)
 
-STACK.append((start, True, Terminal("$")))
+STACK.append((start, True, Terminal("start")))
 
 s0.set_next_state(T, s1)
 s1.set_next_state(E1, s2)
-s3.set_next_state(Terminal("+"), s4)
-s3.set_next_state(Terminal(EPSILON), s6)
+s3.set_next_state("+", s4)
+s3.set_next_state(EPSILON, s6)
 s4.set_next_state(T, s5)
 s5.set_next_state(E1, s6)
 s7.set_next_state(F, s8)
 s8.set_next_state(T1, s9)
-s10.set_next_state(Terminal("*"), s11)
-s10.set_next_state(Terminal(EPSILON), s13)
+s10.set_next_state("*", s11)
+s10.set_next_state(EPSILON, s13)
 s11.set_next_state(F, s12)
 s12.set_next_state(T1, s13)
-s14.set_next_state(Terminal("("), s15)
-s14.set_next_state(Terminal("i"), s17)
+s14.set_next_state("(", s15)
+s14.set_next_state("ID", s17)
 s15.set_next_state(E, s16)
-s16.set_next_state(Terminal(")"), s17)
+s16.set_next_state(")", s17)
 
-start.set_next_state(Terminal("$"), mid1)
-mid1.set_next_state(E, mid2)
-mid2.set_next_state(Terminal("$"), final)
+start.set_next_state(E, mid1)
+mid1.set_next_state(Terminal("EOF"), final)
 
 flag, accepted, parsed = parse(start, final)
 print("accepted:", accepted)
