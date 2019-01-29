@@ -172,6 +172,7 @@ def get_next_token():
 
 token = get_next_token()
 
+
 # <editor-fold desc="Declaring States">
 s1 = State("S1")
 s2 = State("S2")
@@ -302,6 +303,30 @@ start = State("start")
 mid1 = State("mid1")
 final = State("final")
 # </editor-fold>
+
+s4.func_names = ["save_value_type"]
+s5.func_names = ["save_variable_name"]
+s6.func_names = ["save_variable_type"]
+s9.func_names = ["allocate_array"]
+s23.func_names = ["add_parameter"]
+s25.func_names = ["update_parameter_type"]
+s27.func_names = ["time_to_change_blocks"]
+s30.func_names = ["time_to_revert_blocks"]
+s36.func_names = ["check_declared_id", "check_id_is_int_for_output"]
+s40.func_names = ["entering_while"]
+s53.func_names = ["exiting_while"]
+s62.func_names = ["entering_switch"]
+s65.func_names = ["exiting_switch"]
+s34.func_names = ["check_valid_break_continue"]
+s55.func_names = ["check_return_type"]
+s78.func_names = ["check_declared_id", "save_id_for_check"]
+s123.func_names = ["add_argument"]
+s124.func_names = ["close_arguments"]
+s95.func_names = ["check_array_index"]
+s96.func_names = ["remove_id_from_ss"]
+s96.func_names = ["remove_id_from_ss"]
+s90.func_names = ["check_declared_id", "save_id_for_check"]
+s115.func_names = ["check_declared_id", "save_id_for_check"]
 
 # <editor-fold desc="Declaring Diagrams">
 program_diagram = Diagram(s1, s3)
@@ -468,7 +493,10 @@ s87.set_next_state(")", s81)
 s88.set_next_state(term1, s82)
 s88.set_next_state("=", s89)
 s89.set_next_state(expr, s84)
-start.set_next_state(E, mid1)
+
+
+
+start.set_next_state(program, mid1)
 mid1.set_next_state(Terminal("EOF"), final)
 # </editor-fold>
 
