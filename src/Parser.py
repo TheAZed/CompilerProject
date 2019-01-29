@@ -364,31 +364,55 @@ term1 = NonTerminal("term1", ['*', 'e'], ['+', '-', '<', '==', ',', ')', ']', ';
 var = NonTerminal("var", ['ID'], ['=', '*', '+', '-', '<', '==', ',', ')', ']', ';'], var_diagram)
 var_dec = NonTerminal("var_dec", ['int', 'void'], ['int', 'void', 'continue', 'break', ';', 'ID', '(', 'NUM', 'if', 'return', '{', 'switch', 'while', 'EOF'], var_dec_diagram)
 
-# </editor-fold>
+ # </editor-fold>
+
+s4.func_names = ["save_value_type"]
+s5.func_names = ["save_variable_name"]
+s6.func_names = ["save_variable_type"]
+s9.func_names = ["allocate_array"]
+s23.func_names = ["add_parameter"]
+s25.func_names = ["update_parameter_type"]
+s27.func_names = ["time_to_change_blocks"]
+s30.func_names = ["time_to_revert_blocks"]
+s36.func_names = ["check_declared_id", "check_id_is_int_for_output"]
+s40.func_names = ["entering_while"]
+s53.func_names = ["exiting_while"]
+s62.func_names = ["entering_switch"]
+s65.func_names = ["exiting_switch"]
+s34.func_names = ["check_valid_break_continue"]
+s55.func_names = ["check_return_type"]
+s78.func_names = ["check_declared_id", "save_id_for_check"]
+s123.func_names = ["add_argument"]
+s124.func_names = ["close_arguments"]
+s95.func_names = ["check_array_index"]
+s96.func_names = ["remove_id_from_ss"]
+s96.func_names = ["remove_id_from_ss"]
+s90.func_names = ["check_declared_id", "save_id_for_check"]
+s115.func_names = ["check_declared_id", "save_id_for_check"]
 
 STACK.append((start, True, Terminal("start")))
 
-# <editor-fold desc="Setting Edges on Diagrams">
-s0.set_next_state(T, s1)
-s1.set_next_state(E1, s2)
-s3.set_next_state("+", s4)
-s3.set_next_state(EPSILON, s6)
-s4.set_next_state(T, s5)
-s5.set_next_state(E1, s6)
-s7.set_next_state(F, s8)
-s8.set_next_state(T1, s9)
-s10.set_next_state("*", s11)
-s10.set_next_state(EPSILON, s13)
-s11.set_next_state(F, s12)
-s12.set_next_state(T1, s13)
-s14.set_next_state("(", s15)
-s14.set_next_state("ID", s17)
-s15.set_next_state(E, s16)
-s16.set_next_state(")", s17)
-
-start.set_next_state(E, mid1)
+# # <editor-fold desc="Setting Edges on Diagrams">
+# s0.set_next_state(T, s1)
+# s1.set_next_state(E1, s2)
+# s3.set_next_state("+", s4)
+# s3.set_next_state(EPSILON, s6)
+# s4.set_next_state(T, s5)
+# s5.set_next_state(E1, s6)
+# s7.set_next_state(F, s8)
+# s8.set_next_state(T1, s9)
+# s10.set_next_state("*", s11)
+# s10.set_next_state(EPSILON, s13)
+# s11.set_next_state(F, s12)
+# s12.set_next_state(T1, s13)
+# s14.set_next_state("(", s15)
+# s14.set_next_state("ID", s17)
+# s15.set_next_state(E, s16)
+# s16.set_next_state(")", s17)
+#
+# start.set_next_state(E, mid1)
 mid1.set_next_state(Terminal("EOF"), final)
-# </editor-fold>
+# # </editor-fold>
 
 flag, accepted, parsed = parse(start, final)
 print("accepted:", accepted)
